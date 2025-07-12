@@ -1,0 +1,20 @@
+const db = require('../db');
+
+exports.createHabit = (req, res) => {
+  const { name, type, goal_duration } = req.body;
+  const user_id = req.user.id;
+  const sql = 'INSERT INTO Habits (user_id, name, type, goal_duration) VALUES (?, ?, ?, ?)';
+  db.query(sql, [user_id, name, type, goal_duration], (err, result) => {
+    if (err) return res.status(500).send(err);
+    res.status(201).json({ id: result.insertId });
+  });
+};
+
+exports.getHabits = (req, res) => {
+  db.query('SELECT * FROM Habits WHERE user_id = ?', [req.user.id], (err, results) => {
+    if (err) return res.status(500).send(err);
+    res.json(results);
+  });
+};
+
+// Other methods (update, delete, track, stats)... same as before
