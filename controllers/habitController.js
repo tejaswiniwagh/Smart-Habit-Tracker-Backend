@@ -53,3 +53,4 @@ exports.getHabitStats = (req, res) => {
     res.json({ streak: results[0].streak });
   });
 };
+//Added argument to export habitController
