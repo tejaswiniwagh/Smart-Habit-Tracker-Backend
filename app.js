@@ -8,7 +8,11 @@ const db = require('./db/index');
 
 
 const app = express();
-app.use(cors());
+//Frontend to backend connectivity 
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
 app.use(bodyParser.json());
 
 app.use('/api/habits', habitRoutes);
