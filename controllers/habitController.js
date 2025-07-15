@@ -18,3 +18,4 @@ exports.getHabits = (req, res) => {
 };
 
 // Other methods (update, delete, track, stats)... same as before
+// controllers/habitController.js
