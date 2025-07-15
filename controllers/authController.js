@@ -15,7 +15,10 @@ exports.sendOtp = async (req, res) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  otpStore[email] = { otp, name, password_hash: hashedPassword };
+  
+
+  otpStore[email] = { otp, name, password_hash: hashedPassword,createdAt: Date.now() };
+
   console.log("✅ OTP generated and stored:", otp);
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -53,6 +56,15 @@ exports.register = (req, res) => {
   const { email, otp } = req.body;
   const stored = otpStore[email];
   if (!stored) return res.status(400).json({ message: 'OTP expired or not sent' });
+  const otpAge = Date.now() - stored.createdAt;
+  if (otpAge > 3600000) {
+    delete otpStore[email]; // Clean up expired OTP
+    return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
+  }
+
+  if (stored.otp !== otp) {
+    return res.status(401).json({ message: 'Invalid OTP' });
+  }
 
   if (stored.otp !== otp) return res.status(401).json({ message: 'Invalid OTP' });
 
