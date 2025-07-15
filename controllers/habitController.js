@@ -53,3 +53,8 @@ exports.getHabitStats = (req, res) => {
     res.json({ streak: results[0].streak });
   });
 };
+
+
+
+// Other methods (update, delete, track, stats)... same as before
+
