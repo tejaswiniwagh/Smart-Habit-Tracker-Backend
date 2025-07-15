@@ -15,8 +15,12 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 
-app.use('/api/habits', habitRoutes);
-app.use('/api/auth', authRoutes);
+//app.use('/api/habits', habitRoutes);
+//app.use('/api/auth', authRoutes);
+
+app.use('/habits', habitRoutes);
+app.use('/auth', authRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 
