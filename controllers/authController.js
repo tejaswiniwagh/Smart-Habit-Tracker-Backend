@@ -107,7 +107,44 @@ exports.register = (req, res) => {
   });
 };
 
-exports.login = (req, res) => {
-  // You can implement this after register is done
-  return res.json({ message: 'Login not implemented yet' });
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  // Check if fields are missing
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  // Look for user by email
+  const query = `SELECT * FROM Users WHERE email = ?`;
+  db.execute(query, [email], async (err, results) => {
+    if (err) {
+      console.error("❌ MySQL Error:", err);
+      return res.status(500).json({ message: 'Database error' });
+    }
+
+    // If no user found
+    if (results.length === 0) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const user = results[0];
+
+    // Compare input password with hashed password in DB
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // 🟢 Login successful (later you can add JWT here)
+    return res.status(200).json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  });
 };
+
