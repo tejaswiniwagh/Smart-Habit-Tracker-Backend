@@ -1,5 +1,7 @@
 const db = require('../db');
 
+
+//Api for create habit
 exports.createHabit = (req, res) => {
   const {
     habit_name,
@@ -39,32 +41,51 @@ exports.createHabit = (req, res) => {
   );
 };
 
-
+//Api for get habits
 exports.getHabits = (req, res) => {
-  db.query('SELECT * FROM Habits WHERE user_id = ?', [req.user.id], (err, results) => {
-    if (err) return res.status(500).send(err);
-    res.json(results);
+  const user_id = req.user.id;
+  const sql = 'SELECT * FROM habits WHERE user_id = ?';
+  db.query(sql, [user_id], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    res.status(200).json(results);
   });
 };
-
+//For updating habit
 exports.updateHabit = (req, res) => {
   const { id } = req.params;
-  const { name, type, goal_duration } = req.body;
-  const sql = 'UPDATE Habits SET name = ?, type = ?, goal_duration = ? WHERE id = ? AND user_id = ?';
-  db.query(sql, [name, type, goal_duration, id, req.user.id], (err) => {
-    if (err) return res.status(500).send(err);
-    res.json({ message: 'Habit updated' });
+  const user_id = req.user.id;
+  const {
+    habit_name,
+    start_date,
+    target_days,
+    frequency,
+    time_of_day,
+    category,
+    h_note,
+    reminder
+  } = req.body;
+
+  const sql = `UPDATE habits SET habit_name=?, start_date=?, target_days=?, frequency=?, time_of_day=?, category=?, h_note=?, reminder=? 
+               WHERE id=? AND user_id=?`;
+  
+  db.query(sql, [habit_name, start_date, target_days, frequency, time_of_day, category, h_note, reminder, id, user_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+    res.status(200).json({ message: 'Habit updated successfully' });
   });
 };
 
+//Api for deleting habit
 exports.deleteHabit = (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM Habits WHERE id = ? AND user_id = ?';
-  db.query(sql, [id, req.user.id], (err) => {
-    if (err) return res.status(500).send(err);
-    res.json({ message: 'Habit deleted' });
+  const user_id = req.user.id;
+
+  const sql = 'DELETE FROM habits WHERE id = ? AND user_id = ?';
+  db.query(sql, [id, user_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+    res.status(200).json({ message: 'Habit deleted successfully' });
   });
 };
+
 
 exports.trackHabit = (req, res) => {
   const { id } = req.params;
