@@ -11,12 +11,17 @@ const app = express();
 //Frontend to backend connectivity 
 app.use(cors({
   origin: 'http://localhost:3000',
+  //methods: ['GET', 'POST'],
   credentials: true
 }));
 app.use(bodyParser.json());
 
-app.use('/api/habits', habitRoutes);
-app.use('/api/auth', authRoutes);
+//app.use('/api/habits', habitRoutes);
+//app.use('/api/auth', authRoutes);
+
+app.use('/habits', habitRoutes);
+app.use('/auth', authRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 

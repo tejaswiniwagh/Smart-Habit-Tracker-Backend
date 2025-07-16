@@ -1,8 +1,11 @@
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 const db = require('../db/index');
+const jwt = require('jsonwebtoken');
 
 const otpStore = {}; // Temporary memory store for OTP
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // ✅ 1. SEND OTP — only requires email now
 exports.sendOtp = async (req, res) => {
@@ -111,24 +114,39 @@ exports.register = async (req, res) => {
 // ✅ 3. LOGIN — remains the same
 exports.login = async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
 
-  const query = `SELECT * FROM Users WHERE email = ?`;
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  const query = 'SELECT * FROM Users WHERE email = ?';
   db.execute(query, [email], async (err, results) => {
     if (err) return res.status(500).json({ message: 'Database error' });
-    if (results.length === 0) return res.status(401).json({ message: 'Invalid email or password' });
+
+    if (results.length === 0) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
 
     const user = results[0];
     const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) return res.status(401).json({ message: 'Invalid email or password' });
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // ✅ Generate JWT Token
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: '1h',
+    });
 
     return res.status(200).json({
       message: 'Login successful',
       user: {
         id: user.id,
         name: user.name,
-        email: user.email
-      }
+        email: user.email,
+      },
+      token, // ✅ this is what you need in Postman!
     });
   });
 };
