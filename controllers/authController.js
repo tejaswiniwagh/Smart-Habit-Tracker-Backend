@@ -129,7 +129,7 @@ exports.login = async (req, res) => {
     }
 
     const user = results[0];
-    const isMatch = await bcrypt.compare(password, user.password_hash);
+    const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -244,5 +244,38 @@ exports.verifyOtp = (req, res) => {
     res.status(200).json({ message: 'OTP verified successfully', token });
   });
 };
+// ✅ RESET PASSWORD — now requires email and new password
+// This function is called after OTP verification
+
+  exports.resetPassword = async (req, res) => {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({ message: "Email and new password are required" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user's password in database
+    db.query(
+      'UPDATE users SET password = ? WHERE email = ?',
+      [hashedPassword, email],
+      (err, result) => {
+        if (err) {
+          console.error("❌ Error updating password:", err);
+          return res.status(500).json({ message: "Failed to reset password" });
+        }
+        
+        // ✅ After password is updated, delete the OTP from memory
+        delete otpStore[email];
+
+        console.log("✅ Password reset successful");
+        return res.json({ message: "Password reset successful. Please login again." });
+
+      
+      }
+    );
+  };
+
 
 
