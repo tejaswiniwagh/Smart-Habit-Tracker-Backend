@@ -86,6 +86,35 @@ exports.deleteHabit = (req, res) => {
   });
 };
 
+//Get habit by ID
+// controllers/habitController.js
+
+exports.getHabitById = (req, res) => {
+  console.log("➡️ getHabitById called");
+  const habitId = req.params.id;
+  console.log('Params:', req.params);
+  console.log('Habit ID:', habitId);
+
+  if (!habitId) {
+    return res.status(400).json({ message: 'Habit ID is required' });
+  }
+
+  const query = 'SELECT * FROM habits WHERE id = ?';
+  db.query(query, [habitId], (err, results) => {
+    if (err) {
+      console.error('❌ DB Error:', err);
+      return res.status(500).json({ message: 'Database error' });
+    }
+
+    if (results.length === 0) {
+      console.log("⚠️ No habit found for id:", habitId);
+      return res.status(404).json({ message: 'Habit not found' });
+    }
+
+    console.log("✅ Habit found:", results[0]);
+    res.status(200).json(results[0]);
+  });
+};
 
 exports.trackHabit = (req, res) => {
   const { id } = req.params;
