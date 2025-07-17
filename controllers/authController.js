@@ -111,6 +111,7 @@ exports.register = async (req, res) => {
   });
 };
 
+
 // ✅ 3. LOGIN — remains the same
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -151,3 +152,97 @@ exports.login = async (req, res) => {
     });
   });
 };
+//3 Forgot Password
+// ✅ FORGOT PASSWORD — same as sendOtp
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
+  // Generate OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins from now
+
+  // Save OTP + expiry to database
+  const updateSql = 'UPDATE Users SET otp = ?, otp_expiry = ? WHERE email = ?';
+  db.query(updateSql, [otp, otpExpiry, email], (err, result) => {
+    if (err) {
+      console.error("DB error while saving OTP:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Send email
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset OTP - Smart Habit Tracker',
+      text: `Your password reset OTP is: ${otp}`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("❌ OTP email error:", error);
+        return res.status(500).json({ message: "Failed to send OTP" });
+      }
+
+      console.log("✅ Forgot Password OTP sent:", otp);
+      return res.json({ message: "OTP sent to your email" });
+    });
+  });
+};
+
+//Verify OTP function
+exports.verifyOtp = (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ message: 'Email and OTP are required' });
+  }
+
+  const sql = 'SELECT * FROM Users WHERE email = ? AND otp = ?';
+  db.query(sql, [email, otp], (err, results) => {
+    if (err) {
+      console.error('DB error:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (results.length === 0) {
+      return res.status(401).json({ message: 'Invalid OTP or email' });
+    }
+
+    const user = results[0];
+
+    const currentTime = new Date();
+    const otpExpiryTime = new Date(user.otp_expiry);
+
+    if (currentTime > otpExpiryTime) {
+      return res.status(401).json({ message: 'OTP expired' });
+    }
+
+    // ✅ You can now allow password reset or generate JWT if needed
+    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    res.status(200).json({ message: 'OTP verified successfully', token });
+  });
+};
+
+
