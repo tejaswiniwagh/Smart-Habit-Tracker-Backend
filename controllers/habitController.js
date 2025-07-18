@@ -116,12 +116,17 @@ exports.getHabitById = (req, res) => {
   });
 };
 
-exports.trackHabit = (req, res) => {
+exports.trackHabit = (req, res) => { 
   const { id } = req.params;
-  const sql = 'INSERT INTO HabitTracking (habit_id, date) VALUES (?, CURDATE())';
+
+  const sql = `
+    INSERT INTO HabitTracking (habit_id, tracking_date, status)
+    VALUES (?, CURDATE(), TRUE)
+  `;
+
   db.query(sql, [id], (err) => {
     if (err) return res.status(500).send(err);
-    res.json({ message: 'Habit tracked for today' });
+    res.json({ message: 'Habit tracked successfully for today' });
   });
 };
 
@@ -129,11 +134,13 @@ exports.getHabitStats = (req, res) => {
   const { id } = req.params;
   const sql = 'SELECT COUNT(*) AS streak FROM HabitTracking WHERE habit_id = ?';
   db.query(sql, [id], (err, results) => {
-    if (err) return res.status(500).send(err);
+    if (err) {
+      console.error("❌ Error fetching habit stats:", err);
+      return res.status(500).json({ error: "Failed to fetch habit stats" });
+    }
     res.json({ streak: results[0].streak });
   });
 };
-
 
 
 // Other methods (update, delete, track, stats)... same as before
