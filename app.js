@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const habitRoutes = require('./routes/habits');
 const authRoutes = require('./routes/auth');
 const db = require('./db/index'); 
+const notificationRoutes = require('./routes/notificationRoutes');
 
 
 const app = express();
@@ -21,6 +22,8 @@ app.use(bodyParser.json());
 
 app.use('/habits', habitRoutes);
 app.use('/auth', authRoutes);
+app.use('/notifications', notificationRoutes);
+
 
 
 const PORT = process.env.PORT || 5000;
