@@ -113,6 +113,7 @@ exports.register = async (req, res) => {
 
 
 // ✅ 3. LOGIN — remains the same
+// ✅ 3. LOGIN — remains the same
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -129,27 +130,36 @@ exports.login = async (req, res) => {
     }
 
     const user = results[0];
-    const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    if (!user.password_hash) {
+      return res.status(500).json({ message: 'Password is missing in DB' });
     }
 
-    // ✅ Generate JWT Token
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-      expiresIn: '30d',//Added 30 days expiration
-      //TESTING: '1h' // For testing, change to '30d' in production
-    });
+    try {
+      const isMatch = await bcrypt.compare(password, user.password_hash);
 
-    return res.status(200).json({
-      message: 'Login successful',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
-      token, // ✅ this is what you need in Postman!
-    });
+
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+
+      const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+        expiresIn: '30d',
+      });
+
+      return res.status(200).json({
+        message: 'Login successful',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        token,
+      });
+    } catch (error) {
+      console.error('❌ Error comparing passwords:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
   });
 };
 //3 Forgot Password
