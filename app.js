@@ -6,6 +6,9 @@ const habitRoutes = require('./routes/habits');
 const authRoutes = require('./routes/auth');
 const db = require('./db/index'); 
 const notificationRoutes = require('./routes/notificationRoutes');
+const visitRoutes = require('./routes/visits');
+
+
 
 
 const app = express();
@@ -23,6 +26,7 @@ app.use(bodyParser.json());
 app.use('/habits', habitRoutes);
 app.use('/auth', authRoutes);
 app.use('/notifications', notificationRoutes);
+app.use('/visits', visitRoutes);
 
 
 
