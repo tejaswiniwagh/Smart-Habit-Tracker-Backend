@@ -11,5 +11,7 @@ router.get('/:id', verifyToken, habitController.getHabitById); // ✅ fixed
 router.delete('/:id', verifyToken, habitController.deleteHabit);
 router.post('/:id/track', verifyToken, habitController.trackHabit);
 router.get('/:id/stats', verifyToken, habitController.getHabitStats);
+router.get('/:id/tracked-dates', verifyToken, habitController.getTrackedDates);
+
 
 module.exports = router;
