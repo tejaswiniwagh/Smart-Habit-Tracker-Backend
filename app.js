@@ -11,6 +11,7 @@ const visitRoutes = require('./routes/visits');
 
 
 
+
 const app = express();
 //Frontend to backend connectivity 
 app.use(cors({
@@ -27,6 +28,7 @@ app.use('/habits', habitRoutes);
 app.use('/auth', authRoutes);
 app.use('/notifications', notificationRoutes);
 app.use('/visits', visitRoutes);
+
 
 
 

@@ -141,6 +141,26 @@ exports.getHabitStats = (req, res) => {
     res.json({ streak: results[0].streak });
   });
 };
+// 📌 New: Get all tracked dates for a habit
+//This is made for getting tracked dates of a habit
+exports.getTrackedDates = (req, res) => {
+  const { id } = req.params;
+
+  const sql = `
+    SELECT tracking_date 
+    FROM HabitTracking 
+    WHERE habit_id = ? AND status = 1
+  `;
+
+  db.query(sql, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching tracked dates:', err);
+      return res.status(500).json({ error: 'Failed to fetch tracked dates' });
+    }
+
+    res.json(results); // Example: [{ tracking_date: '2025-07-21' }, ...]
+  });
+};
 
 
 // Other methods (update, delete, track, stats)... same as before
